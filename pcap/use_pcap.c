@@ -1,4 +1,6 @@
 #include "common.h"
+#include "use_pcap.h"
+#include "parsing.h"
 
 int init_handle(pcap_arg *arg)
 {
@@ -63,7 +65,13 @@ int print_packet_loop(pcap_arg *arg)
     while (1)
     {
         pcap_next_ex(arg->handle, &header, &packet);
-        pr_out("packet with length of [%d] \n", header->len);
+        if (packet == NULL)
+        {
+            pr_err("Don't grab the packet");
+        }
+
+        pr_out("Packet Length : [%d]", header->len);
+        parse_ethernet(packet);
     }
 
     return RET_SUC;
