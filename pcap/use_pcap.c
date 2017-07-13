@@ -70,8 +70,17 @@ int print_packet_loop(pcap_arg *arg)
             pr_err("Don't grab the packet");
         }
 
-        pr_out("Packet Length : [%d]", header->len);
-        parse_ethernet(packet);
+        pr_out("* Next Packet Length : [%d]\n", header->len);
+        if (parse_ethernet(packet))
+        {
+            if (parse_ip(packet + 14))
+            {
+                if (parse_tcp(packet + 34))
+                {
+                    parse_data(packet + 54);
+                }
+            }
+        }
     }
 
     return RET_SUC;
