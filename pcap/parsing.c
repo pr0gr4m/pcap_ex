@@ -23,6 +23,7 @@ int parse_ethernet(const u_char *packet)
     print_ether_addr(ethdr->ether_dhost);
 
     putchar('\n');
+
     if (ntohs(ethdr->ether_type) == ETHERTYPE_IP)
     {
         return TRUE;
@@ -75,23 +76,39 @@ int parse_tcp(const u_char *packet)
     print_port(ntohs(tcphdr->dest));
 
     putchar('\n');
-    return TRUE;
+
+    if (packet[20])
+        return TRUE;
+    else
+        return FALSE;
 }
 
-static void print_data(const u_char *data)
+static void print_data(const u_char *data, u_int32_t len)
 {
-    for (int i = 0; i < 40; i++)
+    len = len > 80 ? 80 : len;
+
+    puts("Hex : ");
+    for (u_int32_t i = 0; i < len; i++)
+    {
+        printf("%02x ", data[i]);
+        if ((i + 1) % 16 == 0)
+            putchar('\n');
+    }
+    putchar('\n');
+    puts("Char : ");
+    for (u_int32_t i = 0; i < len; i++)
     {
         printf("%c", data[i] >= 0x20 && data[i] < 0x80 ? data[i] : '.');
     }
     putchar('\n');
 }
 
-int parse_data(const u_char *packet)
+int parse_data(const u_char *packet, bpf_u_int32 len)
 {
-    puts("======================================== Data ========================================");
-    print_data(packet);
-    puts("======================================================================================");
+    if (len - 54 <= 0)
+        return FALSE;
+
+    print_data(packet, len - 54);
     putchar('\n');
     return TRUE;
 }

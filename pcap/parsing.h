@@ -10,7 +10,7 @@
 int parse_ethernet(const u_char *packet);
 int parse_ip(const u_char *packet);
 int parse_tcp(const u_char *packet);
-int parse_data(const u_char *packet);
+int parse_data(const u_char *packet, bpf_u_int32 len);
 
 #endif // PARSING_H
 
