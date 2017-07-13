@@ -2,6 +2,14 @@
 #include "use_pcap.h"
 #include "parsing.h"
 
+/*
+ * Prototype : int init_handle(pcap_arg *arg)
+ * Last Modified 2017/07/12
+ * Written by pr0gr4m
+ *
+ * open pcap handle and store to arg
+ * open argument of to_ms is 0
+ */
 int init_handle(pcap_arg *arg)
 {
     char *dev;
@@ -31,6 +39,13 @@ int init_handle(pcap_arg *arg)
     return RET_SUC;
 }
 
+/*
+ * Prototype : int set_handle_port80(pcap_arg *arg)
+ * Last Modified 2017/07/12
+ * Written by pr0gr4m
+ *
+ * set filter of port 80 to handle
+ */
 int set_handle_port80(pcap_arg *arg)
 {
     struct bpf_program fp;
@@ -51,12 +66,29 @@ int set_handle_port80(pcap_arg *arg)
     return RET_SUC;
 }
 
+/*
+ * Prototype : int close_handle(pcap_arg *arg)
+ * Last Modified 2017/07/12
+ * Written by pr0gr4m
+ *
+ * close the handle
+ */
 int close_handle(pcap_arg *arg)
 {
     pcap_close(arg->handle);
     return RET_SUC;
 }
 
+/*
+ * Prototype : int print_packet_loop(pcap_arg *arg)
+ * Last Modified 2017/07/13
+ * Written by pr0gr4m
+ *
+ * capture next packets with handle iteratively
+ * ethernet header default length : 14
+ * ip header default length : 20
+ * tcp header default length : 20
+ */
 int print_packet_loop(pcap_arg *arg)
 {
     struct pcap_pkthdr *header;
