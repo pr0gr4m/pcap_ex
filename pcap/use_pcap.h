@@ -1,6 +1,10 @@
 #ifndef USE_PCAP_H
 #define USE_PCAP_H
 
+#define HEAD_ETH_LEN    14
+#define HEAD_IP_LEN     20
+#define HEAD_TCP_LEN    20
+
 // open pcap handle
 int init_handle(pcap_arg *arg);
 // set handle to port 80
