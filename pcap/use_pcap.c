@@ -107,11 +107,12 @@ int print_packet_loop(pcap_arg *arg)
         pr_out("* Next Packet Length : [%d]\n", header->len);
         if (parse_ethernet(packet))
         {
-            if (parse_ip(packet + 14))
+            if (parse_ip(packet + HEAD_ETH_LEN))
             {
-                if (parse_tcp(packet + 34))
+                if (parse_tcp(packet + HEAD_ETH_LEN + HEAD_IP_LEN))
                 {
-                    parse_data(packet + 54, header->len);
+                    parse_data(packet + HEAD_ETH_LEN +
+                               HEAD_IP_LEN + HEAD_TCP_LEN, header->len);
                 }
             }
         }

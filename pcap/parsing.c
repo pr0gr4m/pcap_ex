@@ -51,6 +51,8 @@ static void print_ip_addr(const u_char *addr)
     }
 }
 
+#define PROT_TCP    0x06
+
 /*
  * Prototype : int parse_ip(const u_char *packet)
  * Last Modified 2017/07/12
@@ -70,7 +72,7 @@ int parse_ip(const u_char *packet)
     print_ip_addr(packet + 16);
 
     putchar('\n');
-    if (packet[9] == 0x06)
+    if (packet[9] == PROT_TCP)
         return TRUE;
     else
         return FALSE;
@@ -87,7 +89,7 @@ static void print_port(const u_int16_t port)
  * Written by pr0gr4m
  *
  * parse src port, dst port
- * return TRUE
+ * return data offset
  */
 int parse_tcp(const u_char *packet)
 {
@@ -103,8 +105,12 @@ int parse_tcp(const u_char *packet)
 
     putchar('\n');
 
-    return TRUE;
+    return tcphdr->doff;
 }
+
+#define PRINT_MAX   256
+#define ASCI_CH_ST  0x20
+#define ASCI_CH_ED  0x80
 
 /*
  * Prototype : static void print_data(const u_char *data, u_int32_t len)
@@ -119,7 +125,7 @@ int parse_tcp(const u_char *packet)
  */
 static void print_data(const u_char *data, u_int32_t len)
 {
-    len = len > 80 ? 80 : len;
+    len = len > PRINT_MAX ? PRINT_MAX : len;
 
     puts("Hex : ");
     for (u_int32_t i = 0; i < len; i++)
@@ -132,10 +138,12 @@ static void print_data(const u_char *data, u_int32_t len)
     puts("Char : ");
     for (u_int32_t i = 0; i < len; i++)
     {
-        printf("%c", data[i] >= 0x20 && data[i] < 0x80 ? data[i] : '.');
+        printf("%c", data[i] >= ASCI_CH_ST && data[i] < ASCI_CH_ED ? data[i] : '.');
     }
     putchar('\n');
 }
+
+#define HEADER_LEN  60
 
 /*
  * Prototype : int parse_data(const u_char *packet, bpf_u_int32 len)
@@ -148,10 +156,10 @@ static void print_data(const u_char *data, u_int32_t len)
  */
 int parse_data(const u_char *packet, bpf_u_int32 len)
 {
-    if (len - 54 <= 0)
+    if (len <= HEADER_LEN)
         return FALSE;
 
-    print_data(packet, len - 54);
+    print_data(packet, len);
     putchar('\n');
     return TRUE;
 }
