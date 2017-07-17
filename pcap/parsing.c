@@ -5,7 +5,7 @@ static void print_ether_addr(u_int8_t arr[])
 {
     for (int i = 0; i < 6; i++)
     {
-        printf("%x%c", arr[i], i == 5 ? '\n' : ':');
+        printf("%02x%c", arr[i], i == 5 ? '\n' : ':');
     }
 }
 
