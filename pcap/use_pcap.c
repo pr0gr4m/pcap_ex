@@ -10,12 +10,10 @@
  * open pcap handle and store to arg
  * open argument of to_ms is 0
  */
-int init_handle(pcap_arg *arg)
+int init_handle(pcap_arg *arg, char *dev)
 {
-    char *dev;
     char errbuf[PCAP_ERRBUF_SIZE];
 
-    dev = pcap_lookupdev(errbuf);
     if (dev == NULL)
     {
         pr_err("Couldn't find default device: %s\n", errbuf);
@@ -24,7 +22,7 @@ int init_handle(pcap_arg *arg)
 
     if (pcap_lookupnet(dev, &(arg->net), &(arg->mask), errbuf) == -1)
     {
-        pr_err("Couldn't get netmask for device %s: %s\n", dev, errbuf);
+        pr_err("Couldn't get netmask for device %s: %s\n", "dum0", errbuf);
         arg->net = 0;
         arg->mask = 0;
     }
@@ -32,7 +30,7 @@ int init_handle(pcap_arg *arg)
     arg->handle = pcap_open_live(dev, BUFSIZ, 1, 0, errbuf);
     if (arg->handle == NULL)
     {
-        pr_err("Couldn't open device %s: %s \n", dev, errbuf);
+        pr_err("Couldn't open device %s: %s \n", "dum0", errbuf);
         return RET_ERR;
     }
 

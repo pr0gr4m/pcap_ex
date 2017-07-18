@@ -6,7 +6,7 @@
 #define HEAD_TCP_LEN    20
 
 // open pcap handle
-int init_handle(pcap_arg *arg);
+int init_handle(pcap_arg *arg, char *dev);
 // set handle to port 80
 int set_handle_port80(pcap_arg *arg);
 // close pcap handle

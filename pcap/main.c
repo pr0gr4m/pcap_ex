@@ -5,7 +5,13 @@ int main(int argc, char *argv[])
 {
     pcap_arg arg;
 
-    if (init_handle(&arg))
+    if (argc < 2)
+    {
+        pr_err("usage: <%s> <interface>", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+
+    if (init_handle(&arg, argv[1]))
     {
         exit(EXIT_FAILURE);
     }
