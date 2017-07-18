@@ -5,6 +5,9 @@
 #define HEAD_IP_LEN     20
 #define HEAD_TCP_LEN    20
 
+#include "common.h"
+#include "parsing.h"
+
 // open pcap handle
 int init_handle(pcap_arg *arg, char *dev);
 // set handle to port 80

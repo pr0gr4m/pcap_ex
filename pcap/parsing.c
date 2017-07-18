@@ -1,28 +1,27 @@
-#include "common.h"
 #include "parsing.h"
 
-static void print_ether_addr(u_int8_t arr[])
+static void print_ether_addr(u_int8_t addr[])
 {
     for (int i = 0; i < ADDR_ETH_LEN; i++)
     {
-        printf("%02x%c", arr[i], i == 5 ? '\n' : ':');
+        printf("%02x%c", addr[i], i == 5 ? '\n' : ':');
     }
 }
 
 /*
- * Prototype : int parse_ethernet(const u_char *packet)
- * Last modified 2017/07/12
+ * Prototype : int parse_ethernet(const u_char *frame)
+ * Last modified 2017/07/18
  * Written by pr0gr4m
  *
  * parse src mac addr, dst mac addr
  * if ethernet type is ip, return TRUE
  * or return FALSE
  */
-int parse_ethernet(const u_char *packet)
+int parse_ethernet(const u_char *frame)
 {
     struct ether_header *ethdr;
 
-    ethdr = (struct ether_header *)packet;
+    ethdr = (struct ether_header *)frame;
     pr_out("Ethernet");
 
     pr_out_n("Source : ");
@@ -43,34 +42,42 @@ int parse_ethernet(const u_char *packet)
     }
 }
 
-static void print_ip_addr(const u_char *addr)
+static void print_ip_addr(const struct in_addr addr)
 {
-    for (int i = 0; i < ADDR_IP_LEN; i++)
-    {
-        printf("%d%c", addr[i], i == 3 ? '\n' : '.');
-    }
+    char buf[BUF_LEN];
+    inet_ntop(AF_INET, (const void *)&addr, buf, BUF_LEN);
+
+    if (buf == NULL)
+        return;
+
+    puts(buf);
 }
 
 /*
- * Prototype : int parse_ip(const u_char *packet)
- * Last Modified 2017/07/12
+ * Prototype : int parse_ip(const u_char *packet, int *tot_len, int *ip_hlen)
+ * Last Modified 2017/07/18
  * Written by pr0gr4m
  *
  * parse src ip addr, dst ip addr
  * if protocol is TCP(0x06) return TRUE
  * or return FALSE
  */
-int parse_ip(const u_char *packet)
+int parse_ip(const u_char *packet, int *tot_len, int *ip_hlen)
 {
+    struct ip *iphdr = (struct ip *)packet;
+
     pr_out("IP");
 
     pr_out_n("Source : ");
-    print_ip_addr(packet + IP_SRC_OFF);
+    print_ip_addr(iphdr->ip_src);
     pr_out_n("Destination : ");
-    print_ip_addr(packet + IP_DST_OFF);
+    print_ip_addr(iphdr->ip_dst);
+
+    *tot_len = ntohs(iphdr->ip_len);
+    *ip_hlen = iphdr->ip_hl;
 
     putchar('\n');
-    if (packet[IDX_PROT] == PROT_TCP)
+    if (packet[IDX_PROT] == IPPROTO_TCP)
         return TRUE;
     else
         return FALSE;
@@ -82,19 +89,18 @@ static void print_port(const u_int16_t port)
 }
 
 /*
- * Prototype : int parse_tcp(const u_char *packet)
- * Last modified 2017/07/12
+ * Prototype : int parse_tcp(const u_char *segment, int *tcp_doff)
+ * Last modified 2017/07/18
  * Written by pr0gr4m
  *
  * parse src port, dst port
  * return data offset
  */
-int parse_tcp(const u_char *packet)
+int parse_tcp(const u_char *segment, int *tcp_doff)
 {
-    struct tcphdr *tcphdr;
+    struct tcphdr *tcphdr = (struct tcphdr *)segment;
 
     pr_out("TCP");
-    tcphdr = (struct tcphdr *)packet;
 
     pr_out_n("Source : ");
     print_port(ntohs(tcphdr->source));
@@ -103,6 +109,8 @@ int parse_tcp(const u_char *packet)
 
     putchar('\n');
 
+    *tcp_doff = tcphdr->doff;
+
     return tcphdr->doff;
 }
 
@@ -110,11 +118,11 @@ int parse_tcp(const u_char *packet)
 
 /*
  * Prototype : static void print_data(const u_char *data, u_int32_t len)
- * Last modified 2017/07/13
+ * Last modified 2017/07/18
  * Written by pr0gr4m
  *
  * Argument len is length of payload data.
- * if the len is over 80, cut to 80.
+ * if the len is over PRINT_MAX, cut to PRINT_MAX.
  * print data by hex and character
  * if hex value can't convert to character (not within from 0x20 to 0x80)
  * print '.' instead
@@ -140,7 +148,7 @@ static void print_data(const u_char *data, u_int32_t len)
 }
 
 /*
- * Prototype : int parse_data(const u_char *packet, bpf_u_int32 len)
+ * Prototype : int parse_data(const u_char *payload, bpf_u_int32 len)
  * Last modified 2017/07/13
  * Written by pr0gr4m
  *
@@ -148,12 +156,9 @@ static void print_data(const u_char *data, u_int32_t len)
  * if len is over 54, print the payload data and return TRUE
  * or return FALSE
  */
-int parse_data(const u_char *packet, bpf_u_int32 len)
+int parse_data(const u_char *payload, bpf_u_int32 len)
 {
-    if (len <= HEADER_LEN)
-        return FALSE;
-
-    print_data(packet, len);
+    print_data(payload, len);
     putchar('\n');
     return TRUE;
 }

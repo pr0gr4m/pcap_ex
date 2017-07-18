@@ -1,6 +1,4 @@
-#include "common.h"
 #include "use_pcap.h"
-#include "parsing.h"
 
 /*
  * Prototype : int init_handle(pcap_arg *arg)
@@ -94,7 +92,7 @@ int close_handle(pcap_arg *arg)
 
 /*
  * Prototype : int print_packet_loop(pcap_arg *arg)
- * Last Modified 2017/07/13
+ * Last Modified 2017/07/18
  * Written by pr0gr4m
  *
  * capture next packets with handle iteratively
@@ -105,27 +103,44 @@ int close_handle(pcap_arg *arg)
 int print_packet_loop(pcap_arg *arg)
 {
     struct pcap_pkthdr *header;
-    const u_char *packet;
+    const u_char *frame, *packet, *segment, *payload;
+    int ret_next;
+    int tot_len, ip_hlen, tcp_doff;
 
     while (1)
     {
         putchar('\n');
-        pcap_next_ex(arg->handle, &header, &packet);
-        if (packet == NULL)
+        ret_next = pcap_next_ex(arg->handle, &header, &frame);
+
+        if (ret_next == 0)
+            continue;
+
+        if (ret_next != 1)
+            break;
+
+        if (frame == NULL)
         {
             pr_err("Don't grab the packet");
         }
 
-
         pr_out("* Next Packet Length : [%d]\n", header->len);
-        if (parse_ethernet(packet))
+        if (parse_ethernet(frame))
         {
-            if (parse_ip(packet + HEAD_ETH_LEN))
+            packet = frame + HEAD_ETH_LEN;
+            if (parse_ip(packet, &tot_len, &ip_hlen))
             {
-                if (parse_tcp(packet + HEAD_ETH_LEN + HEAD_IP_LEN))
+                segment = packet + ip_hlen * 4;
+                if (parse_tcp(segment, &tcp_doff))
                 {
-                    parse_data(packet + HEAD_ETH_LEN +
-                               HEAD_IP_LEN + HEAD_TCP_LEN, header->len);
+                    if (tot_len + HEAD_ETH_LEN > 60 &&
+                            tot_len > ip_hlen * 4 + tcp_doff * 4)
+                    {
+                        // pass a packet which has no payload data.
+                        payload = segment + tcp_doff * 4;
+                        parse_data(payload, tot_len -
+                                   (ip_hlen * 4 + tcp_doff * 4));
+
+                    }
                 }
             }
         }
