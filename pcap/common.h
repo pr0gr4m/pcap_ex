@@ -12,6 +12,8 @@
 #define RET_SUC 0
 #define RET_ERR 2
 
+#define BUF_LEN 256
+
 typedef struct _pcap_arg
 {
     pcap_t *handle;

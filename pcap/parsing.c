@@ -3,7 +3,7 @@
 
 static void print_ether_addr(u_int8_t arr[])
 {
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < ADDR_ETH_LEN; i++)
     {
         printf("%02x%c", arr[i], i == 5 ? '\n' : ':');
     }
@@ -45,13 +45,11 @@ int parse_ethernet(const u_char *packet)
 
 static void print_ip_addr(const u_char *addr)
 {
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < ADDR_IP_LEN; i++)
     {
         printf("%d%c", addr[i], i == 3 ? '\n' : '.');
     }
 }
-
-#define PROT_TCP    0x06
 
 /*
  * Prototype : int parse_ip(const u_char *packet)
@@ -67,12 +65,12 @@ int parse_ip(const u_char *packet)
     pr_out("IP");
 
     pr_out_n("Source : ");
-    print_ip_addr(packet + 12);
+    print_ip_addr(packet + IP_SRC_OFF);
     pr_out_n("Destination : ");
-    print_ip_addr(packet + 16);
+    print_ip_addr(packet + IP_DST_OFF);
 
     putchar('\n');
-    if (packet[9] == PROT_TCP)
+    if (packet[IDX_PROT] == PROT_TCP)
         return TRUE;
     else
         return FALSE;
@@ -109,8 +107,6 @@ int parse_tcp(const u_char *packet)
 }
 
 #define PRINT_MAX   256
-#define ASCI_CH_ST  0x20
-#define ASCI_CH_ED  0x80
 
 /*
  * Prototype : static void print_data(const u_char *data, u_int32_t len)
@@ -142,8 +138,6 @@ static void print_data(const u_char *data, u_int32_t len)
     }
     putchar('\n');
 }
-
-#define HEADER_LEN  60
 
 /*
  * Prototype : int parse_data(const u_char *packet, bpf_u_int32 len)

@@ -39,17 +39,12 @@ int init_handle(pcap_arg *arg)
     return RET_SUC;
 }
 
-/*
- * Prototype : int set_handle_port80(pcap_arg *arg)
- * Last Modified 2017/07/12
- * Written by pr0gr4m
- *
- * set filter of port 80 to handle
- */
-int set_handle_port80(pcap_arg *arg)
+static int set_handle_port(pcap_arg *arg, char arr[])
 {
     struct bpf_program fp;
-    const char filter_exp[] = "port 80";
+    char filter_exp[BUF_LEN];
+
+    snprintf(filter_exp, BUF_LEN, "%s %s", "port", arr);
 
     if (pcap_compile(arg->handle, &fp, filter_exp, 0, arg->net) == -1)
     {
@@ -64,6 +59,26 @@ int set_handle_port80(pcap_arg *arg)
     }
 
     return RET_SUC;
+}
+
+/*
+ * Prototype : int set_handle_port80(pcap_arg *arg)
+ * Last Modified 2017/07/12
+ * Written by pr0gr4m
+ *
+ * set filter of port 80 to handle
+ */
+int set_handle_port80(pcap_arg *arg)
+{
+
+    if (set_handle_port(arg, "80") == RET_ERR)
+    {
+        return RET_ERR;
+    }
+    else
+    {
+        return RET_SUC;
+    }
 }
 
 /*
