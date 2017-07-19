@@ -16,10 +16,12 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
+    /*
     if (set_handle_port80(&arg))
     {
         exit(EXIT_FAILURE);
     }
+    */
 
     if (print_packet_loop(&arg))
     {

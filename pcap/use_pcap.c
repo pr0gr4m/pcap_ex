@@ -18,12 +18,17 @@ int init_handle(pcap_arg *arg, char *dev)
         return RET_ERR;
     }
 
+    /*
     if (pcap_lookupnet(dev, &(arg->net), &(arg->mask), errbuf) == -1)
     {
         pr_err("Couldn't get netmask for device %s: %s\n", "dum0", errbuf);
         arg->net = 0;
         arg->mask = 0;
     }
+    */
+
+    arg->net = 0;
+    arg->mask = 0;
 
     arg->handle = pcap_open_live(dev, BUFSIZ, 1, 0, errbuf);
     if (arg->handle == NULL)
@@ -97,8 +102,8 @@ int close_handle(pcap_arg *arg)
  *
  * capture next packets with handle iteratively
  * ethernet header default length : 14
- * ip header default length : 20
- * tcp header default length : 20
+ * ip header default length : hl * 4
+ * tcp header default length : doff * 4
  */
 int print_packet_loop(pcap_arg *arg)
 {
